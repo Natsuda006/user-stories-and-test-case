@@ -1,19 +1,27 @@
 import { test as setup } from "@playwright/test";
+import { existsSync } from "node:fs";
 
 const authFile = "playwright/.auth/admin.json";
 
 setup("Login as Admin with Google", async ({ page }) => {
-  // เปิดหน้า Login
+  setup.setTimeout(120000);
+
+  if (existsSync(authFile)) {
+    console.log("Found saved admin session, skipping Google login.");
+    return;
+  }
+
   await page.goto("/sign-in");
 
-  // หยุดไว้เพื่อให้ Login Google ด้วยตัวเอง
-  await page.pause();
+  console.log("Waiting for Google Login...");
 
-  // หลัง Login สำเร็จ รอให้เข้าสู่หน้า Admin
-  await page.waitForURL("**/admin");
+  await page.waitForURL("**/admin", {
+    timeout: 120000,
+  });
 
-  // บันทึก Session
   await page.context().storageState({
     path: authFile,
   });
+
+  console.log("Admin login successful.");
 });

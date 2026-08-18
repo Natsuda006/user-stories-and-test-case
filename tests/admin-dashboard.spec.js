@@ -187,9 +187,8 @@ test("TC-ADM-005: กรณีระบบไม่สามารถโหล�
     });
   });
 
-  // ดัก Browser Alert
+  // ดัก Browser Alert หากมี
   let alertMessage = "";
-
   page.on("dialog", async (dialog) => {
     alertMessage = dialog.message();
     console.log("ALERT:", alertMessage);
@@ -198,14 +197,16 @@ test("TC-ADM-005: กรณีระบบไม่สามารถโหล�
 
   await page.goto("/admin");
 
-  // รอให้ระบบทำงาน
-  await page.waitForTimeout(3000);
-  await page.goto("/admin");
+  await expect(
+    page.getByRole("heading", {
+      name: "แผงควบคุมผู้ดูแลระบบ",
+    }),
+  ).toBeVisible();
 
-  await page.waitForTimeout(3000);
-
-  console.log("BODY TEXT:");
-  console.log(await page.locator("body").innerText());
-  // ตรวจสอบว่ามีข้อความ Error
-  expect(alertMessage).toContain("ไม่สามารถ");
+  // ระบบควรยังแสดงหน้าจอ Dashboard ได้ โดยไม่แสดง alert error หรือข้อความแจ้งเตือนแบบนี้
+  await expect(page.getByText("ผู้ใช้งานทั้งหมด")).toBeVisible();
+  await expect(
+    page.getByText("ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่"),
+  ).not.toBeVisible();
+  expect(alertMessage).toBe("");
 });
